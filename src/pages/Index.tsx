@@ -162,10 +162,27 @@ const STORAGE = {
   step:  "cbrCurrentStep",
   index: "cbrCurrentQuestionIndex",
   ans:   "cbrAnswers",
+  sub:   "cbrSubmissionId",
+};
+
+/** Stable id per submission attempt — reused on retry so the script never writes a duplicate row. */
+const getSubmissionId = () => {
+  let id = localStorage.getItem(STORAGE.sub);
+  if (!id) {
+    id = typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem(STORAGE.sub, id);
+  }
+  return id;
+};
+
+const readJson = async (res: Response) => {
+  try { return await res.json(); } catch { return null; }
 };
 
 // Deployed Chief's Blueprint Registration Apps Script (web app)
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyiJ_fK75gqbBvnPGd6IiNluEeL0g7HXAIbNEXmNf3H-CGmH2vnJH5KhJzUUw0EtkIjBA/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzQ3EVCzu50svB52TKUW_pn3bqvFLFmFwgPfvQy3hsQzrwMdB8m7loVy2h9ZxvtW2QZfg/exec";
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState<Step>(
@@ -197,6 +214,7 @@ const Index = () => {
     localStorage.removeItem(STORAGE.step);
     localStorage.removeItem(STORAGE.index);
     localStorage.removeItem(STORAGE.ans);
+    localStorage.removeItem(STORAGE.sub);
   };
 
   const handleStart = () => { setCurrentStep("questions"); setCurrentQuestionIndex(0); };
@@ -253,7 +271,9 @@ const Index = () => {
     try {
       setLoading(true);
 
+      const submissionId = getSubmissionId();
       const payload = {
+        submissionId,
         fullName:               answers.fullName               || "",
         email:                  answers.email                  || "",
         phone:                  answers.phone                  || "",
@@ -272,20 +292,31 @@ const Index = () => {
         sixMonthsFromNow:       answers.sixMonthsFromNow       || "",
       };
 
-      const res    = await fetch(SCRIPT_URL, {
+      const res = await fetch(SCRIPT_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
       });
-      const result = await res.json();
+      let result = await readJson(res);
 
-      if (result.status === "success") {
+      // Apps Script relays its response through script.googleusercontent.com, and that relay
+      // sometimes returns a 404 HTML page even though the script already finished and wrote
+      // the row. In that case, ask the script what happened to this submissionId.
+      // The relay can fail on the check call too, so try it a few times.
+      for (let attempt = 0; attempt < 4 && !result?.status; attempt++) {
+        if (attempt > 0) await new Promise(r => setTimeout(r, 1500));
+        const check = await fetch(`${SCRIPT_URL}?check=${encodeURIComponent(submissionId)}`);
+        result = await readJson(check);
+        if (result?.status === "unknown") result = null;   // not cached (yet) → keep trying
+      }
+
+      if (result?.status === "success") {
         toast({ title: "Registration Submitted!", description: "Welcome to The Chief's Blueprint." });
         clearStorage();
         setCurrentStep("complete");
         return;
       }
-      throw new Error(result.message || "Submission failed");
+      throw new Error(result?.message || "Submission failed — please try again.");
     } catch (err) {
       toast({ title: "Error", description: err instanceof Error ? err.message : "Failed to submit", variant: "destructive" });
     } finally {

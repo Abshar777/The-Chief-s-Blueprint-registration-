@@ -92,6 +92,13 @@ export function FormRewards({ onSubmit, onPrevious, isSubmitting, sections }: Pr
               ))}
             </div>
 
+            {/* Submitting hint — Apps Script round-trips are slow */}
+            {isSubmitting && (
+              <p className="text-[11px] text-white/45 font-semibold mb-3 -mt-4">
+                Saving your registration… this can take up to 20 seconds. Please don't close the page.
+              </p>
+            )}
+
             {/* Navigation */}
             <div className="flex items-center justify-between pt-4 border-t border-white/10 gap-3">
               <button onClick={onPrevious} disabled={!!isSubmitting}
