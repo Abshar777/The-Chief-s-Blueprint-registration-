@@ -1,0 +1,225 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens — The Chief's Blueprint (crimson / black) ───────── */
+@layer base {
+  :root {
+    --background:             0 0% 98%;
+    --foreground:             0 0% 8%;
+    --card:                   0 0% 100%;
+    --card-foreground:        0 0% 8%;
+    --popover:                0 0% 100%;
+    --popover-foreground:     0 0% 8%;
+    --primary:                0 85% 45%;      /* #d41111 crimson */
+    --primary-foreground:     0 0% 100%;
+    --secondary:              0 60% 96%;
+    --secondary-foreground:   0 85% 45%;
+    --muted:                  0 20% 94%;
+    --muted-foreground:       0 5% 45%;
+    --accent:                 0 60% 94%;
+    --accent-foreground:      0 85% 45%;
+    --destructive:            0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border:                 0 10% 88%;
+    --input:                  0 0% 100%;
+    --ring:                   0 85% 45%;
+    --radius:                 12px;
+    --form-button:            0 85% 45%;
+    --form-button-hover:      0 90% 36%;
+  }
+
+  * { @apply border-border box-border; }
+
+  html, body, #root {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Prevent iOS/Android auto-zoom on input focus (requires font-size ≥ 16px) ── */
+  input, textarea, select {
+    font-size: 16px !important;
+    touch-action: manipulation;
+  }
+
+  /* Prevent double-tap zoom on all interactive elements */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+  }
+
+  h1, h2, h3 { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 800; }
+}
+
+/* ── Keyframes ─────────────────────────────────────────────────────── */
+@keyframes slideInUp  { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:none; } }
+@keyframes fadeIn     { from { opacity:0; } to { opacity:1; } }
+@keyframes floatY     { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-9px); } }
+@keyframes pulseDot   {
+  0%   { box-shadow: 0 0 0 0   hsl(0 85% 45% / 0.45); }
+  70%  { box-shadow: 0 0 0 7px hsl(0 85% 45% / 0); }
+  100% { box-shadow: 0 0 0 0   hsl(0 85% 45% / 0); }
+}
+@keyframes emberPulse {
+  0%,100% { opacity: 0.55; transform: scale(1); }
+  50%     { opacity: 0.9;  transform: scale(1.08); }
+}
+
+/* ── Grid move (infinite scroll to the right) ──────────────────────── */
+@keyframes gridScroll {
+  from { background-position: 0 0; }
+  to   { background-position: 40px 0; }
+}
+
+/* ── Crimson / black background (matches poster) ───────────────────── */
+.form-grid-bg {
+  position: relative;
+  background:
+    radial-gradient(ellipse 70% 55% at 85% 10%, rgba(200, 16, 16, 0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 10% 90%, rgba(150, 0, 0, 0.45) 0%, transparent 60%),
+    linear-gradient(160deg, #2a0000 0%, #120000 45%, #050000 100%);
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* animated grid lines — moves right infinitely */
+.form-grid-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridScroll 6s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* top-right ember glow */
+.form-grid-bg::after {
+  content: '';
+  position: absolute;
+  top: -120px; right: -120px;
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, rgba(255, 40, 40, 0.28) 0%, transparent 65%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: emberPulse 5s ease-in-out infinite;
+}
+
+/* Welcome page scrolls freely */
+.form-grid-bg--scroll {
+  height: auto !important;
+  min-height: 100dvh !important;
+  overflow: visible !important;
+}
+
+/* ── Question card ─────────────────────────────────────────────────── */
+.question-card {
+  background: rgba(255,255,255,0.985);
+  border: 1.5px solid rgba(255,255,255,0.6);
+  border-radius: 20px;
+  box-shadow: 0 16px 56px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,60,60,0.15), 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* ── Dark card (rewards / info pages) ──────────────────────────────── */
+.dark-card {
+  background: linear-gradient(160deg, rgba(40,4,4,0.92) 0%, rgba(14,0,0,0.96) 100%);
+  border: 1.5px solid rgba(255,80,80,0.28);
+  border-radius: 22px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(212,17,17,0.18);
+  backdrop-filter: blur(12px);
+}
+
+/* ── Metallic display title (poster style) ─────────────────────────── */
+.display-font {
+  font-family: 'Bebas Neue', 'Plus Jakarta Sans', Impact, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+.metal-text {
+  background: linear-gradient(180deg, #ffffff 0%, #e8e8e8 35%, #9a9a9a 50%, #f2f2f2 62%, #7d7d7d 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,0.5)) drop-shadow(0 6px 18px rgba(0,0,0,0.6));
+}
+
+/* ── Poster frame ──────────────────────────────────────────────────── */
+.poster-frame {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255,90,90,0.35);
+  box-shadow: 0 30px 70px rgba(0,0,0,0.7), 0 0 60px rgba(212,17,17,0.35);
+}
+
+/* ── Primary button ────────────────────────────────────────────────── */
+.form-button {
+  background: hsl(var(--form-button)) !important;
+  color: #fff !important;
+  border-radius: 50px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.4px !important;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1) !important;
+  border: none !important;
+}
+.form-button:hover:not(:disabled) {
+  background: hsl(var(--form-button-hover)) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(212,17,17,0.45) !important;
+}
+.form-button:disabled { opacity: 0.4 !important; cursor: not-allowed !important; }
+
+/* ── Input ─────────────────────────────────────────────────────────── */
+.form-input-base {
+  width: 100%;
+  padding: 0 1rem;
+  height: 48px;
+  border-radius: 14px;
+  border: 2px solid hsl(var(--border));
+  background: #fff;
+  font-size: 1rem;        /* ≥16px prevents iOS auto-zoom on focus */
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+.form-input-base:focus {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px rgba(212,17,17,0.14);
+}
+.form-input-base.error {
+  border-color: #f87171;
+  box-shadow: 0 0 0 3px rgba(248,113,113,0.12);
+}
+
+/* ── Helpers ───────────────────────────────────────────────────────── */
+.form-welcome { animation: slideInUp 0.65s ease; }
+.form-logo    { animation: floatY 4s ease-in-out infinite; }
+.form-fade-in { animation: fadeIn 0.9s ease; }
+.step-dot-current { animation: pulseDot 1.8s ease-in-out infinite; }
+
+.scrollbar-thin { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+.scrollbar-thin::-webkit-scrollbar       { width: 4px; }
+.scrollbar-thin::-webkit-scrollbar-track  { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb  { background: #cbd5e1; border-radius: 4px; }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.scrollbar-hide { scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* Terms & Conditions scroll box — always scrollable on all devices */
+.terms-scroll-box {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
