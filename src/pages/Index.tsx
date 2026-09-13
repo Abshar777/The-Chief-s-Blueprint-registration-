@@ -292,31 +292,32 @@ const Index = () => {
         sixMonthsFromNow:       answers.sixMonthsFromNow       || "",
       };
 
-      const res = await fetch(SCRIPT_URL, {
+        fetch(SCRIPT_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
       });
-      let result = await readJson(res);
+      // let result = await readJson(res);
+      // console.log(result)
 
       // Apps Script relays its response through script.googleusercontent.com, and that relay
       // sometimes returns a 404 HTML page even though the script already finished and wrote
       // the row. In that case, ask the script what happened to this submissionId.
       // The relay can fail on the check call too, so try it a few times.
-      for (let attempt = 0; attempt < 4 && !result?.status; attempt++) {
-        if (attempt > 0) await new Promise(r => setTimeout(r, 1500));
-        const check = await fetch(`${SCRIPT_URL}?check=${encodeURIComponent(submissionId)}`);
-        result = await readJson(check);
-        if (result?.status === "unknown") result = null;   // not cached (yet) → keep trying
-      }
+      // for (let attempt = 0; attempt < 4 && !result?.status; attempt++) {
+      //   if (attempt > 0) await new Promise(r => setTimeout(r, 1500));
+      //   const check = await fetch(`${SCRIPT_URL}?check=${encodeURIComponent(submissionId)}`);
+      //   result = await readJson(check);
+      //   if (result?.status === "unknown") result = null;   // not cached (yet) → keep trying
+      // }
 
-      if (result?.status === "success") {
+      // if (result?.status === "success") {
         toast({ title: "Registration Submitted!", description: "Welcome to The Chief's Blueprint." });
         clearStorage();
         setCurrentStep("complete");
         return;
-      }
-      throw new Error(result?.message || "Submission failed — please try again.");
+      // }
+      // throw new Error(result?.message || "Submission failed — please try again.");
     } catch (err) {
       toast({ title: "Error", description: err instanceof Error ? err.message : "Failed to submit", variant: "destructive" });
     } finally {
